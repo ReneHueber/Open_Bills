@@ -11,14 +11,14 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="open_bills.ControllerMainWindow">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="open_bills.ControllerMainWindow">
    <children>
       <MenuBar>
         <menus>
           <Menu mnemonicParsing="false" text="Rechnungen">
             <items>
-              <MenuItem fx:id="incomingBillsMI" mnemonicParsing="false" text="An Mich" />
-                  <MenuItem fx:id="outgoingBillsMI" mnemonicParsing="false" text="Von Mir" />
+              <MenuItem fx:id="incomingBillsMI" mnemonicParsing="false" onAction="#incomingBillsClicked" text="An Mich" />
+                  <MenuItem fx:id="outgoingBillsMI" mnemonicParsing="false" onAction="#outgoingBillsClicked" text="Von Mir" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Suchen">
@@ -36,22 +36,22 @@
       </MenuBar>
       <AnchorPane prefHeight="460.0" prefWidth="600.0">
          <children>
-            <TableView layoutY="50.0" prefHeight="323.0" prefWidth="600.0">
+            <TableView fx:id="openBillsTable" layoutY="50.0" onMouseClicked="#tableViewItemClicked" prefHeight="323.0" prefWidth="700.0">
               <columns>
-                <TableColumn editable="false" prefWidth="141.0" text="Firma" />
-                <TableColumn editable="false" prefWidth="133.0" text="Jahr/Monat" />
-                  <TableColumn editable="false" prefWidth="322.0" text="Datei Name" />
+                <TableColumn fx:id="companyTC" editable="false" prefWidth="141.0" text="Firma" />
+                <TableColumn fx:id="dateTC" editable="false" prefWidth="94.0" sortType="DESCENDING" text="Jahr/Monat" />
+                  <TableColumn fx:id="fileNameTC" editable="false" prefWidth="462.0" text="Datei Name" />
               </columns>
             </TableView>
-            <Button fx:id="payedBtn" layoutX="520.0" layoutY="385.0" mnemonicParsing="false" text="Bezahlt" />
-            <Label fx:id="file_nameLb" alignment="CENTER" layoutX="96.0" layoutY="389.0" prefHeight="16.0" prefWidth="336.0" text="Rechnung-05_2020_Amazon_o.pdf" />
-            <Label fx:id="dateLb" layoutX="443.0" layoutY="389.0" text="2020/05" />
+            <Button fx:id="payedBtn" layoutX="624.0" layoutY="385.0" mnemonicParsing="false" text="Bezahlt" />
+            <Label fx:id="file_nameLb" alignment="CENTER" layoutX="126.0" layoutY="389.0" prefHeight="16.0" prefWidth="382.0" />
+            <Label fx:id="dateLb" layoutX="533.0" layoutY="390.0" prefHeight="16.0" prefWidth="67.0" />
             <Label layoutX="14.0" layoutY="389.0" text="Ausgewählt:">
                <font>
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <Label fx:id="headingLb" layoutX="181.0" layoutY="17.0" text="Offene Rechnungen an Mich">
+            <Label fx:id="headingLb" alignment="CENTER" layoutX="186.0" layoutY="15.0" prefHeight="19.0" prefWidth="329.0" text="Offene Rechnungen an Mich">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>
