@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 public class ControllerMainWindow {
     // Gui Elements
     @FXML Label headingLb;
-    @FXML Button payedBtn;
+    @FXML Button payedBtn, reloadValuesBtn;
     @FXML MenuItem incomingBillsMI, outgoingBillsMI;
     @FXML MenuItem searchOpenBillsMI, searchSequelNumberMI;
 
@@ -73,6 +73,15 @@ public class ControllerMainWindow {
         }
         jsonHandler.writeJsonFile(openBills);
         renameFile(selectedBill);
+    }
+
+
+    public void reloadValuesBtnClicked(){
+        openBills = jsonHandler.readJsonFile();
+        if (selectedIncomingBillsScene)
+            setTableValues(openBills.get("bills_incoming"));
+        else
+            setTableValues(openBills.get("bills_outgoing"));
     }
 
 
