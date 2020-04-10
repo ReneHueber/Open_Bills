@@ -3,6 +3,10 @@ package open_bills;
 public class BillItem {
     private String companyName, month, year, fileName, filePath, date;
 
+    public BillItem(){
+
+    }
+
     public BillItem(String companyName, String month, String year, String fileName, String filePath) {
         this.companyName = companyName;
         this.month = month;
