@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class ControllerMainWindow {
     /** changes this variables if the path has been changed **/
     private String jsonFilePath = "/home/ich/Documents/Projekte_Andere/Rechnungen/open_bills.txt";
     private String movePath = "/home/ich/Desktop/Move_Folder";
+    private String payedFolder = "Bezahlt";
     private Map<String, ObservableList<BillItem>> openBills = new HashMap<>();
     private boolean selectedIncomingBillsScene = true;
 
@@ -127,16 +129,35 @@ public class ControllerMainWindow {
         openBills = jsonHandler.readJsonFile();
     }
 
-    private void renameFile(BillItem selectedBill){
-        String newFileName = selectedBill.getFileName().replace("_o", "");
-        Path oldPath = Paths.get(selectedBill.getFilePath());
-        Path newPath = Paths.get(movePath, newFileName);
 
+    private void renameFile(BillItem selectedBill){
+        String oldFileName = selectedBill.getFileName();
+        String newFileName = selectedBill.getFileName().replace("_o", "");
+        Path openBillsFolderPath = Paths.get(selectedBill.getFilePath());
+        String parentFolderPath = openBillsFolderPath.getParent().toString();
+        Path destinationFolderPath = Paths.get(parentFolderPath, payedFolder);
+
+        if (!Files.exists(destinationFolderPath)){
+            File createDir = new File(destinationFolderPath.toString());
+            createDir.mkdir();
+        }
+        File openBillFolder = new File(openBillsFolderPath.toString());
+        Path newFilePath = Paths.get(destinationFolderPath.toString(), newFileName);
+        Path oldFilePath = Paths.get(openBillsFolderPath.toString(), oldFileName);
         try {
-            Files.move(oldPath, newPath);
+            Files.move(oldFilePath, newFilePath);
         } catch (IOException e){
             e.printStackTrace();
         }
+        File[] filesList = openBillFolder.listFiles();
+        if (filesList != null && filesList.length == 0) {
+            try {
+                Files.delete(openBillsFolderPath);
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+
     }
 }
 
