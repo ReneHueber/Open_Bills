@@ -62,13 +62,15 @@ public class ControllerMainWindow {
     public void payedBtnClicked(){
         BillItem selectedBill = openBillsTable.getSelectionModel().getSelectedItem();
         // only updates the list and renames the file if it exists
-        if (Files.exists(Paths.get(selectedBill.getFilePath(), selectedBill.getFileName()))){
-            deleteOpenBillEntrance();
-            renameFile(selectedBill);
-        }
-        else {
-            WriteLogs.writeLog(String.format("The Bill \"%s\" doesn't exist any more!", selectedBill.getFileName()));
-            WriteLogs.writeLog(String.format("It has been here \"%s\"\n", Paths.get(selectedBill.getFilePath())));
+        if (selectedBill != null){
+            if (Files.exists(Paths.get(selectedBill.getFilePath(), selectedBill.getFileName()))){
+                deleteOpenBillEntrance();
+                renameFile(selectedBill);
+            }
+            else {
+                WriteLogs.writeLog(String.format("The Bill \"%s\" doesn't exist any more!", selectedBill.getFileName()));
+                WriteLogs.writeLog(String.format("It has been here \"%s\"\n", Paths.get(selectedBill.getFilePath())));
+            }
         }
     }
 
