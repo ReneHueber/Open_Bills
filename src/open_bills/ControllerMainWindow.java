@@ -77,7 +77,7 @@ public class ControllerMainWindow {
         renameFile(selectedBill);
     }
 
-
+    /** reads the json file again, is something changed while the program is open**/
     public void reloadValuesBtnClicked(){
         openBills = jsonHandler.readJsonFile();
         if (selectedIncomingBillsScene)
@@ -130,18 +130,23 @@ public class ControllerMainWindow {
     }
 
 
+    /** renames and moves the file
+     *  deletes the open bill folder if it is empty **/
     private void renameFile(BillItem selectedBill){
+        // gets the file names
         String oldFileName = selectedBill.getFileName();
         String newFileName = selectedBill.getFileName().replace("_o", "");
+        // the path for the open bill folder
         Path openBillsFolderPath = Paths.get(selectedBill.getFilePath());
         String parentFolderPath = openBillsFolderPath.getParent().toString();
         Path destinationFolderPath = Paths.get(parentFolderPath, payedFolder);
 
+        // checks if the payed folder is not existing and creates it
         if (!Files.exists(destinationFolderPath)){
             File createDir = new File(destinationFolderPath.toString());
             createDir.mkdir();
         }
-        File openBillFolder = new File(openBillsFolderPath.toString());
+        // creates the paths to rename the file
         Path newFilePath = Paths.get(destinationFolderPath.toString(), newFileName);
         Path oldFilePath = Paths.get(openBillsFolderPath.toString(), oldFileName);
         try {
@@ -149,15 +154,19 @@ public class ControllerMainWindow {
         } catch (IOException e){
             e.printStackTrace();
         }
+        // checks if the open bills folder is empty and in this case deletes the folder
+        File openBillFolder = new File(openBillsFolderPath.toString());
         File[] filesList = openBillFolder.listFiles();
         if (filesList != null && filesList.length == 0) {
             try {
                 Files.delete(openBillsFolderPath);
+                WriteLogs.writeLog(String.format("\tDeleted \"%s\" because it was empty", openBillsFolderPath.toString().split("Rechnungen/")[1]));
             } catch (IOException e){
                 e.printStackTrace();
             }
         }
-
+        WriteLogs.writeLog(String.format("\tBill \"%s\" was payed and renamed to \"%s\"!", oldFileName, newFileName));
+        WriteLogs.writeLog(String.format("Moved \"%s\" to \"%s\"\n", newFileName, newFilePath.toString().split("Rechnungen/")[1]));
     }
 }
 
