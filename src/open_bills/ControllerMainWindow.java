@@ -16,7 +16,6 @@ import java.nio.file.Paths;
 public class ControllerMainWindow {
     // Gui Elements
     @FXML Label headingLb;
-    @FXML Button payedBtn, reloadValuesBtn;
     @FXML MenuItem incomingBillsMI, outgoingBillsMI;
     @FXML MenuItem searchOpenBillsMI, searchSequelNumberMI;
 
@@ -62,19 +61,19 @@ public class ControllerMainWindow {
      * moves and renames the bill pdf file**/
     public void payedBtnClicked(){
         BillItem selectedBill = openBillsTable.getSelectionModel().getSelectedItem();
-        // clears the selected item
-        openBillsTable.getSelectionModel().clearSelection();
-        // deletes the selected item for the open bills list
-        if (selectedIncomingBillsScene){
-            ObservableList<BillItem> incomingBills = openBills.get("bills_incoming");
-            incomingBills.remove(selectedBill);
+        // only updates the list and renames the file if it exists
+        if (Files.exists(Paths.get(selectedBill.getFilePath(), selectedBill.getFileName()))){
+            deleteOpenBillEntrance();
+            renameFile(selectedBill);
         }
-        else{
-            ObservableList<BillItem> incomingBills = openBills.get("bills_outgoing");
-            incomingBills.remove(selectedBill);
+        else {
+            WriteLogs.writeLog(String.format("The Bill \"%s\" doesn't exist any more!", selectedBill.getFileName()));
+            WriteLogs.writeLog(String.format("It has been here \"%s\"\n", Paths.get(selectedBill.getFilePath())));
         }
-        jsonHandler.writeJsonFile(openBills);
-        renameFile(selectedBill);
+    }
+
+    public void deleteBtnClicked(){
+        deleteOpenBillEntrance();
     }
 
     /** reads the json file again, is something changed while the program is open**/
@@ -129,44 +128,63 @@ public class ControllerMainWindow {
         openBills = jsonHandler.readJsonFile();
     }
 
+    private void deleteOpenBillEntrance(){
+        BillItem selectedBill = openBillsTable.getSelectionModel().getSelectedItem();
+        // clears the selected item
+        openBillsTable.getSelectionModel().clearSelection();
+        // deletes the selected item for the open bills list
+        if (selectedIncomingBillsScene){
+            ObservableList<BillItem> incomingBills = openBills.get("bills_incoming");
+            incomingBills.remove(selectedBill);
+        }
+        else{
+            ObservableList<BillItem> incomingBills = openBills.get("bills_outgoing");
+            incomingBills.remove(selectedBill);
+        }
+        jsonHandler.writeJsonFile(openBills);
+    }
+
 
     /** renames and moves the file
      *  deletes the open bill folder if it is empty **/
     private void renameFile(BillItem selectedBill){
-        // gets the file names
-        String oldFileName = selectedBill.getFileName();
-        String newFileName = selectedBill.getFileName().replace("_o", "");
-        // the path for the open bill folder
-        Path openBillsFolderPath = Paths.get(selectedBill.getFilePath());
-        String parentFolderPath = openBillsFolderPath.getParent().toString();
-        Path destinationFolderPath = Paths.get(parentFolderPath, payedFolder);
 
-        // checks if the payed folder is not existing and creates it
-        if (!Files.exists(destinationFolderPath)){
-            File createDir = new File(destinationFolderPath.toString());
-            createDir.mkdir();
-        }
-        // creates the paths to rename the file
-        Path newFilePath = Paths.get(destinationFolderPath.toString(), newFileName);
-        Path oldFilePath = Paths.get(openBillsFolderPath.toString(), oldFileName);
-        try {
-            Files.move(oldFilePath, newFilePath);
-        } catch (IOException e){
-            e.printStackTrace();
-        }
-        // checks if the open bills folder is empty and in this case deletes the folder
-        File openBillFolder = new File(openBillsFolderPath.toString());
-        File[] filesList = openBillFolder.listFiles();
-        if (filesList != null && filesList.length == 0) {
+        if (Files.exists(Paths.get(selectedBill.getFilePath()))){
+            // gets the file names
+            String oldFileName = selectedBill.getFileName();
+            String newFileName = selectedBill.getFileName().replace("_o", "");
+            // the path for the open bill folder
+            Path openBillsFolderPath = Paths.get(selectedBill.getFilePath());
+            String parentFolderPath = openBillsFolderPath.getParent().toString();
+            Path destinationFolderPath = Paths.get(parentFolderPath, payedFolder);
+
+            // checks if the payed folder is not existing and creates it
+            if (!Files.exists(destinationFolderPath)){
+                File createDir = new File(destinationFolderPath.toString());
+                createDir.mkdir();
+            }
+            // creates the paths to rename the file
+            Path newFilePath = Paths.get(destinationFolderPath.toString(), newFileName);
+            Path oldFilePath = Paths.get(openBillsFolderPath.toString(), oldFileName);
             try {
-                Files.delete(openBillsFolderPath);
-                WriteLogs.writeLog(String.format("\tDeleted \"%s\" because it was empty", openBillsFolderPath.toString().split("Rechnungen/")[1]));
+                Files.move(oldFilePath, newFilePath);
             } catch (IOException e){
                 e.printStackTrace();
             }
+            // checks if the open bills folder is empty and in this case deletes the folder
+            File openBillFolder = new File(openBillsFolderPath.toString());
+            File[] filesList = openBillFolder.listFiles();
+            if (filesList != null && filesList.length == 0) {
+                try {
+                    Files.delete(openBillsFolderPath);
+                    WriteLogs.writeLog(String.format("\tDeleted \"%s\" because it was empty", openBillsFolderPath.toString().split("Rechnungen/")[1]));
+                } catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+            WriteLogs.writeLog(String.format("\tBill \"%s\" was payed and renamed to \"%s\"!", oldFileName, newFileName));
+            WriteLogs.writeLog(String.format("Moved \"%s\" to \"%s\"\n", newFileName, newFilePath.toString().split("Rechnungen/")[1]));
         }
-        WriteLogs.writeLog(String.format("\tBill \"%s\" was payed and renamed to \"%s\"!", oldFileName, newFileName));
-        WriteLogs.writeLog(String.format("Moved \"%s\" to \"%s\"\n", newFileName, newFilePath.toString().split("Rechnungen/")[1]));
     }
 }
 

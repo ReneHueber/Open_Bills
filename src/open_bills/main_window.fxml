@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="open_bills.ControllerMainWindow">
+<VBox maxHeight="450.0" maxWidth="700.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="open_bills.ControllerMainWindow">
    <children>
       <MenuBar>
         <menus>
@@ -43,13 +43,14 @@
                   <TableColumn fx:id="fileNameTC" editable="false" prefWidth="462.0" text="Datei Name" />
               </columns>
             </TableView>
-            <Button fx:id="payedBtn" layoutX="623.0" layoutY="385.0" mnemonicParsing="false" onAction="#payedBtnClicked" text="Bezahlt" />
+            <Button layoutX="623.0" layoutY="385.0" mnemonicParsing="false" onAction="#payedBtnClicked" text="Bezahlt" />
             <Label fx:id="headingLb" alignment="CENTER" layoutX="186.0" layoutY="15.0" prefHeight="19.0" prefWidth="329.0" text="Offene Rechnungen an Mich">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>
             </Label>
-            <Button fx:id="reloadValuesBtn" layoutX="11.0" layoutY="385.0" mnemonicParsing="false" onAction="#reloadValuesBtnClicked" text="Neu Laden" />
+            <Button layoutX="11.0" layoutY="385.0" mnemonicParsing="false" onAction="#reloadValuesBtnClicked" text="Neu Laden" />
+            <Button layoutX="134.0" layoutY="386.0" mnemonicParsing="false" onAction="#deleteBtnClicked" text="Eintrag löschen" />
          </children>
       </AnchorPane>
    </children>
