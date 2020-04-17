@@ -51,9 +51,11 @@ public class JsonHandler {
                     String year = (String) billValue.get("year");
                     String fileName = (String) billValue.get("file_name");
                     String filePath = (String) billValue.get("file_path");
+                    String description = (String) billValue.get("description");
+                    String dayOfIssue = (String) billValue.get("date_of_issue");
 
                     // add's the object to the list
-                    billItemList.add(new BillItem(companyName, month, year, fileName, filePath));
+                    billItemList.add(new BillItem(companyName, month, year, fileName, filePath, description, dayOfIssue));
                 }
                 // put's the list of item's in the dictionary
                 openBillsDict.put(key, billItemList);
@@ -85,6 +87,8 @@ public class JsonHandler {
                 billJsonObject.put("year", openBill.getYear());
                 billJsonObject.put("file_name", openBill.getFileName());
                 billJsonObject.put("file_path", openBill.getFilePath());
+                billJsonObject.put("description", openBill.getDescription());
+                billJsonObject.put("date_of_issue", openBill.getDayOfIssue());
 
                 // add's the json object to the json list
                 billObjectsJsonArray.add(billJsonObject);
@@ -93,7 +97,7 @@ public class JsonHandler {
             writeObjectJson.put(key, billObjectsJsonArray);
         }
         try{
-            file = new FileWriter("/home/ich/Documents/Projekte_Andere/Rechnungen/open_bills.txt");
+            file = new FileWriter(jsonFilePath);
             file.write(writeObjectJson.toJSONString());
 
         } catch (IOException e) {

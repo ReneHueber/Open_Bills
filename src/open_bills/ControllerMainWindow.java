@@ -7,6 +7,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.nio.file.Files;
@@ -18,14 +19,15 @@ public class ControllerMainWindow {
     @FXML Label headingLb;
     @FXML MenuItem incomingBillsMI, outgoingBillsMI;
     @FXML MenuItem searchOpenBillsMI, searchSequelNumberMI;
+    @FXML DatePicker payDateDp;
 
     @FXML TableView<BillItem> openBillsTable;
     @FXML TableColumn<BillItem, String> companyTC, dateTC, fileNameTC;
 
     // Global Variables
     /** changes this variables if the path has been changed **/
-    private String jsonFilePath = "/home/ich/Documents/Projekte_Andere/Rechnungen/open_bills.txt";
-    private String movePath = "/home/ich/Desktop/Move_Folder";
+    private String jsonFilePath = "/home/ich/Dokumente/Projekte_Andere/Rechnungen/open_bills.txt";
+    private String movePath = "/home/ich/Schreibtisch/Move_Folder";
     private String payedFolder = "Bezahlt";
     private Map<String, ObservableList<BillItem>> openBills = new HashMap<>();
     private boolean selectedIncomingBillsScene = true;
@@ -40,6 +42,7 @@ public class ControllerMainWindow {
 
         fillDictionary();
         setupTableView();
+        payDateDp.setValue(LocalDate.now());
     }
     // Button functions
 
@@ -63,6 +66,11 @@ public class ControllerMainWindow {
         BillItem selectedBill = openBillsTable.getSelectionModel().getSelectedItem();
         // only updates the list and renames the file if it exists
         if (selectedBill != null){
+            if (selectedBill.getYear().equals("0000")){
+                LocalDate payDate = payDateDp.getValue();
+                selectedBill.setMonth(Integer.toString(payDate.getMonthValue()));
+                selectedBill.setYear(Integer.toString(payDate.getYear()));
+            }
             if (Files.exists(Paths.get(selectedBill.getFilePath(), selectedBill.getFileName()))){
                 deleteOpenBillEntrance();
                 renameFile(selectedBill);
@@ -74,6 +82,7 @@ public class ControllerMainWindow {
         }
     }
 
+    /** deletes an entrance that has been removed manually **/
     public void deleteBtnClicked(){
         deleteOpenBillEntrance();
     }
@@ -95,10 +104,15 @@ public class ControllerMainWindow {
         headingLb.setText(headingText);
         // values are only updated if the selected and the navigation scene are different
         // because otherwise the selected values are lost if the same scene is selected
-        if (navigateIncomingBillScene && !selectedIncomingBillsScene)
+        if (navigateIncomingBillScene && !selectedIncomingBillsScene){
             setTableValues(openBills.get("bills_incoming"));
-        else if (!navigateIncomingBillScene && selectedIncomingBillsScene)
+            payDateDp.setDisable(false);
+        }
+        else if (!navigateIncomingBillScene && selectedIncomingBillsScene){
             setTableValues(openBills.get("bills_outgoing"));
+            payDateDp.setDisable(true);
+        }
+
     }
 
     /** set's the values for the columns, to display the values correctly **/
@@ -150,42 +164,61 @@ public class ControllerMainWindow {
     /** renames and moves the file
      *  deletes the open bill folder if it is empty **/
     private void renameFile(BillItem selectedBill){
+        String newFileName = "";
+        Path destinationFolderPath = Paths.get("");
+        Path locationFolderPath = Paths.get("");
+
 
         if (Files.exists(Paths.get(selectedBill.getFilePath()))){
-            // gets the file names
+            // gets the file name
             String oldFileName = selectedBill.getFileName();
-            String newFileName = selectedBill.getFileName().replace("_o", "");
-            // the path for the open bill folder
-            Path openBillsFolderPath = Paths.get(selectedBill.getFilePath());
-            String parentFolderPath = openBillsFolderPath.getParent().toString();
-            Path destinationFolderPath = Paths.get(parentFolderPath, payedFolder);
+            // outgoing bill
+            if (selectedBill.getOutgoingBill()){
+                newFileName = selectedBill.getFileName().replace("_o", "");
+                // the path for the open bill folder
+                locationFolderPath = Paths.get(selectedBill.getFilePath());
+                String parentFolderPath = locationFolderPath.getParent().toString();
+                destinationFolderPath = Paths.get(parentFolderPath, payedFolder);
 
-            // checks if the payed folder is not existing and creates it
-            if (!Files.exists(destinationFolderPath)){
-                File createDir = new File(destinationFolderPath.toString());
-                createDir.mkdir();
+                // checks if the payed folder is not existing and creates it
+                if (!Files.exists(destinationFolderPath)){
+                    File createDir = new File(destinationFolderPath.toString());
+                    createDir.mkdir();
+                }
             }
+            // incoming bill
+            else{
+                String fileType = selectedBill.getFileName().split("\\.")[1];
+                newFileName = String.format("~%s-%s-%s~%s-%s.%s", selectedBill.getMonth(), selectedBill.getYear(), selectedBill.getCompanyName(),
+                        selectedBill.getDescription(), selectedBill.getDayOfIssue(), fileType);
+                locationFolderPath = Paths.get(selectedBill.getFilePath());
+                destinationFolderPath = Paths.get(movePath);
+            }
+
+
             // creates the paths to rename the file
             Path newFilePath = Paths.get(destinationFolderPath.toString(), newFileName);
-            Path oldFilePath = Paths.get(openBillsFolderPath.toString(), oldFileName);
+            Path oldFilePath = Paths.get(locationFolderPath.toString(), oldFileName);
             try {
                 Files.move(oldFilePath, newFilePath);
             } catch (IOException e){
                 e.printStackTrace();
             }
+
             // checks if the open bills folder is empty and in this case deletes the folder
-            File openBillFolder = new File(openBillsFolderPath.toString());
+            File openBillFolder = new File(locationFolderPath.toString());
             File[] filesList = openBillFolder.listFiles();
             if (filesList != null && filesList.length == 0) {
                 try {
-                    Files.delete(openBillsFolderPath);
-                    WriteLogs.writeLog(String.format("\tDeleted \"%s\" because it was empty", openBillsFolderPath.toString().split("Rechnungen/")[1]));
+                    Files.delete(locationFolderPath);
+                    WriteLogs.writeLog(String.format("\tDeleted \"%s\" because it was empty", locationFolderPath.toString().split("Rechnungen/")[1]));
                 } catch (IOException e){
                     e.printStackTrace();
                 }
             }
             WriteLogs.writeLog(String.format("\tBill \"%s\" was payed and renamed to \"%s\"!", oldFileName, newFileName));
-            WriteLogs.writeLog(String.format("Moved \"%s\" to \"%s\"\n", newFileName, newFilePath.toString().split("Rechnungen/")[1]));
+            // TODO write log entrance
+            // WriteLogs.writeLog(String.format("Moved \"%s\" to \"%s\"\n", newFileName, newFilePath.toString().split("Rechnungen/")[1]));
         }
     }
 }

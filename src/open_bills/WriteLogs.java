@@ -7,7 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class WriteLogs {
-    private static String logFilePath = "/home/ich/Desktop/Log_file.txt";
+    private static String logFilePath = "/home/ich/Schreibtisch/Log_file.txt";
 
     /** writes a log to the log file**/
     protected static void writeLog(String text){
