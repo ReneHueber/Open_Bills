@@ -7,10 +7,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class WriteLogs {
-    private static String logFilePath = "/home/ich/Schreibtisch/Log_file.txt";
+    private String logFilePath;
+
+    public WriteLogs(String logFilePath){
+        this.logFilePath = logFilePath;
+    }
 
     /** writes a log to the log file**/
-    protected static void writeLog(String text){
+    protected void writeLog(String text){
         File logFile = new File(logFilePath);
         try {
             FileWriter fr = new FileWriter(logFile, true);
@@ -21,7 +25,7 @@ public class WriteLogs {
         }
     }
 
-    private static String getCurrentDate(){
+    private String getCurrentDate(){
         SimpleDateFormat formatter = new SimpleDateFormat(
                 "dd/MM/yyyy, HH:mm:ss"
         );

@@ -4,10 +4,12 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.nio.file.Files;
@@ -28,22 +30,22 @@ public class ControllerMainWindow {
     /** changes this variables if the path has been changed **/
     private String jsonFilePath = "/home/ich/Dokumente/Projekte_Andere/Rechnungen/open_bills.txt";
     private String movePath = "/home/ich/Schreibtisch/Move_Folder";
+    private String logFilePath = "/home/ich/Schreibtisch/Log_file.txt";
     private String payedFolder = "Bezahlt";
     private Map<String, ObservableList<BillItem>> openBills = new HashMap<>();
     private boolean selectedIncomingBillsScene = true;
 
     // objects
-    JsonHandler jsonHandler;
+    JsonHandler jsonHandler = new JsonHandler(jsonFilePath);
+    WriteLogs logs = new WriteLogs(logFilePath);
 
-    /** passes the gui elements to the class that handles the gui actions
-     * constructor call in the initialize function because before the gui elements are Null**/
+    /** setup of the gui elements **/
     public void initialize(){
-        jsonHandler = new JsonHandler(jsonFilePath);
-
         fillDictionary();
         setupTableView();
-        payDateDp.setValue(LocalDate.now());
+        setupDatePicker();
     }
+
     // Button functions
 
     /** handles incomingBills Menu Item clicked
@@ -76,8 +78,8 @@ public class ControllerMainWindow {
                 renameFile(selectedBill);
             }
             else {
-                WriteLogs.writeLog(String.format("The Bill \"%s\" doesn't exist any more!", selectedBill.getFileName()));
-                WriteLogs.writeLog(String.format("It has been here \"%s\"\n", Paths.get(selectedBill.getFilePath())));
+                logs.writeLog(String.format("The Bill \"%s\" doesn't exist any more!", selectedBill.getFileName()));
+                logs.writeLog(String.format("It has been here \"%s\"\n", Paths.get(selectedBill.getFilePath())));
             }
         }
     }
@@ -112,7 +114,6 @@ public class ControllerMainWindow {
             setTableValues(openBills.get("bills_outgoing"));
             payDateDp.setDisable(true);
         }
-
     }
 
     /** set's the values for the columns, to display the values correctly **/
@@ -135,6 +136,34 @@ public class ControllerMainWindow {
     private void setupTableView(){
         setColumnsOpenBillsTable();
         setTableValues(openBills.get("bills_incoming"));
+    }
+
+    /** set's the format date of the date picker, so that all date formats are equal **/
+    private void setupDatePicker(){
+        // creates the formatter for the date of the date picker
+        StringConverter<LocalDate> converter = new StringConverter<LocalDate>() {
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+            @Override
+            public String toString(LocalDate localDate) {
+                if (localDate != null){
+                    return dateFormatter.format(localDate);
+                } else{
+                    return "";
+                }
+            }
+
+            @Override
+            public LocalDate fromString(String s) {
+                if (s != null && !s.isEmpty()){
+                    return LocalDate.parse(s, dateFormatter);
+                }
+                else{
+                    return null;
+                }
+            }
+        };
+        payDateDp.setConverter(converter);
+        payDateDp.setValue(LocalDate.now());
     }
 
     // program functions
@@ -164,9 +193,8 @@ public class ControllerMainWindow {
     /** renames and moves the file
      *  deletes the open bill folder if it is empty **/
     private void renameFile(BillItem selectedBill){
-        String newFileName = "";
-        Path destinationFolderPath = Paths.get("");
-        Path locationFolderPath = Paths.get("");
+        String newFileName;
+        Path destinationFolderPath, locationFolderPath;
 
 
         if (Files.exists(Paths.get(selectedBill.getFilePath()))){
@@ -211,14 +239,23 @@ public class ControllerMainWindow {
             if (filesList != null && filesList.length == 0) {
                 try {
                     Files.delete(locationFolderPath);
-                    WriteLogs.writeLog(String.format("\tDeleted \"%s\" because it was empty", locationFolderPath.toString().split("Rechnungen/")[1]));
+                    logs.writeLog(String.format("\tDeleted \"%s\" because it was empty", locationFolderPath.toString().split("/Rechnungen/")[1]));
                 } catch (IOException e){
                     e.printStackTrace();
                 }
             }
-            WriteLogs.writeLog(String.format("\tBill \"%s\" was payed and renamed to \"%s\"!", oldFileName, newFileName));
-            // TODO write log entrance
-            // WriteLogs.writeLog(String.format("Moved \"%s\" to \"%s\"\n", newFileName, newFilePath.toString().split("Rechnungen/")[1]));
+            logs.writeLog(String.format("\tBill \"%s\" was payed and renamed to \"%s\"!", oldFileName, newFileName));
+            // if the file is moved to the folder that is tracked from the python script, no log is written
+            String path;
+            try{
+                path = newFilePath.toString().split("Rechnungen/")[1];
+            } catch (IndexOutOfBoundsException e){
+                path = newFilePath.toString();
+                e.printStackTrace();
+            }
+            path = path.split( "/" + newFileName)[0];
+            logs.writeLog(String.format("Moved \"%s\" to \"%s\"\n", newFileName, path));
+
         }
     }
 }
