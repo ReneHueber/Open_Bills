@@ -164,6 +164,7 @@ public class ControllerMainWindow {
         };
         payDateDp.setConverter(converter);
         payDateDp.setValue(LocalDate.now());
+        payDateDp.setEditable(false);
     }
 
     // program functions
